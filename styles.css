@@ -1,0 +1,278 @@
+/* Ultra-minimal styling - like a Word document with hyperlinks */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    line-height: 1.4;
+    color: #000;
+    background-color: #fff;
+    max-width: 800px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Header */
+.header-content {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+}
+
+/* Breadcrumb navigation */
+.breadcrumb {
+    margin-bottom: 1rem;
+    font-size: 0.9rem;
+    color: #666;
+}
+
+.breadcrumb a {
+    color: #0000EE;
+    text-decoration: underline;
+}
+
+.breadcrumb span {
+    color: #000;
+}
+
+.profile-icon {
+    width: 90px;
+    height: 90px;
+    object-fit: cover;
+    border-radius: 18%;
+}
+
+header h1 {
+    font-size: 1.5rem;
+    font-weight: normal;
+    margin: 0;
+}
+
+/* Navigation */
+nav {
+    margin-bottom: 2rem;
+}
+
+nav a {
+    color: #0000EE;
+    text-decoration: underline;
+    margin-right: 1rem;
+}
+
+nav a:hover {
+    color: #551A8B;
+}
+
+/* Links */
+a {
+    color: #0000EE;
+    text-decoration: underline;
+}
+
+a:hover {
+    color: #551A8B;
+}
+
+/* Headings */
+h2 {
+    font-size: 1.3rem;
+    font-weight: normal;
+    margin: 2rem 0 1rem 0;
+}
+
+h3 {
+    font-size: 1.1rem;
+    font-weight: normal;
+    margin: 1.5rem 0 0.5rem 0;
+}
+
+h4 {
+    font-size: 1rem;
+    font-weight: normal;
+    margin: 1rem 0 0.5rem 0;
+}
+
+/* Paragraphs */
+p {
+    margin: 0.5rem 0;
+}
+
+/* Lists */
+ul {
+    margin: 0.5rem 0;
+    padding-left: 2rem;
+}
+
+li {
+    margin: 0.25rem 0;
+}
+
+/* Navigation links on homepage */
+.nav-links {
+    list-style: none;
+    padding: 0;
+}
+
+.nav-links li {
+    margin: 0.5rem 0;
+    padding: 0;
+}
+
+.nav-links a {
+    color: #0000EE;
+    text-decoration: underline;
+}
+
+.nav-links p {
+    margin: 0.25rem 0 0 0;
+    color: #000;
+    font-size: 0.9rem;
+}
+
+/* Projects */
+.project-card {
+    margin: 1rem 0;
+}
+
+.project-links {
+    margin: 0.5rem 0;
+}
+
+.btn {
+    color: #0000EE;
+    text-decoration: underline;
+    margin-right: 1rem;
+}
+
+/* Writings */
+.year-section {
+    margin: 2rem 0;
+}
+
+.year-section h2 {
+    font-size: 1.8rem;
+    font-weight: normal;
+    margin: 2rem 0 1rem 0;
+    color: #000;
+}
+
+.article-item {
+    margin: 1rem 0;
+    padding-left: 1rem;
+}
+
+.article-item h3 {
+    margin: 0.5rem 0;
+}
+
+.writing-excerpt {
+    color: #000;
+    font-size: 0.95rem;
+    margin: 0.25rem 0;
+}
+
+/* Photographs */
+.photo-item {
+    margin: 1rem 0;
+}
+
+.gallery-photo {
+    width: 100%;
+    max-width: 400px;
+    height: auto;
+    margin: 0.5rem 0;
+}
+
+.photo-caption {
+    color: #000;
+    font-size: 0.9rem;
+    font-style: italic;
+}
+
+/* Resume */
+.resume-section {
+    margin: 1.5rem 0;
+}
+
+.resume-item {
+    margin: 1rem 0;
+}
+
+.company {
+    color: #000;
+    font-weight: normal;
+}
+
+.duration {
+    color: #000;
+    font-size: 0.9rem;
+}
+
+.resume-item ul {
+    margin: 0.5rem 0;
+}
+
+.resume-item li {
+    margin: 0.25rem 0;
+}
+
+.skills-grid {
+    display: block;
+}
+
+.skill-category {
+    margin: 1rem 0;
+}
+
+.skill-category ul {
+    margin: 0.5rem 0;
+}
+
+.contact-info p {
+    margin: 0.25rem 0;
+}
+
+/* Footer */
+footer {
+    margin-top: 3rem;
+    text-align: center;
+    color: #000;
+    font-size: 0.9rem;
+}
+
+/* Page headers */
+.page-header {
+    margin-bottom: 1.5rem;
+}
+
+.page-header h2 {
+    margin-bottom: 0.5rem;
+}
+
+.page-header p {
+    color: #000;
+    font-size: 0.95rem;
+}
+
+.download-link {
+    color: #0000EE;
+    text-decoration: underline;
+    font-weight: 500;
+    font-size: 1rem;
+}
+
+.download-link:hover {
+    color: #551A8B;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    body {
+        padding: 1rem;
+    }
+    
+    .header-content {
+        flex-direction: column;
+        text-align: left;
+        gap: 0.5rem;
+    }
+}
