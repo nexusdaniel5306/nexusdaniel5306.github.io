@@ -1,2 +1,3 @@
-# nexusdaniel5306.github.io
-My personal website
+### itsdan.li
+Welcome to my repository for my personal website
+# WORK IN PROGRESS
