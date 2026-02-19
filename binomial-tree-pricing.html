@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Binomial Tree Pricing | Daniel Li</title>
+    <link rel="icon" type="image/webp" href="favicon.webp">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="breadcrumb">
+            <a href="index.html">Daniel Li</a> > <a href="projects.html">Projects</a> > <span>Binomial Tree Pricing</span>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <h2>Binomial Tree Pricing of Equity Derivatives</h2>
+        </section>
+
+        <section class="project-card">
+            <p>This project implements an options pricing engine for both American and European contracts using a binomial tree formulation. Price dynamics are represented as discrete up/down transitions, making it straightforward to evaluate different payoffs and exercise policies while preserving interpretability.</p>
+            <p>The tool accepts user-specified parameters and can pull current market inputs through the TwelveData REST API. To improve readability, pricing paths are visualized as node trees so users can inspect how terminal payoffs propagate backward into present value estimates.</p>
+            <p><strong>Technologies:</strong> NumPy, SciPy, Matplotlib, Treelib, REST APIs</p>
+        </section>
+    </main>
+</body>
+</html>

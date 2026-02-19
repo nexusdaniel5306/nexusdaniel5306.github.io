@@ -260,6 +260,82 @@ footer {
     font-size: 1rem;
 }
 
+/* Collage gallery */
+.gallery {
+    margin: 2rem 0;
+    max-width: 100%;
+}
+
+.gallery-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+}
+
+.gallery-tile {
+    margin: 0;
+    aspect-ratio: 3 / 4;
+    overflow: hidden;
+    border-radius: 10px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    content-visibility: auto;
+}
+
+.gallery-tile img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    cursor: default;
+}
+
+@media (min-width: 768px) {
+    .gallery-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+        grid-auto-rows: 105px;
+        grid-auto-flow: dense;
+        gap: 1rem;
+    }
+
+    .gallery-tile {
+        aspect-ratio: auto;
+        grid-row: span 4;
+    }
+
+    .tile-01, .tile-04, .tile-08, .tile-11 { grid-column: span 2; }
+    .tile-01, .tile-02, .tile-05, .tile-07, .tile-10, .tile-11 { grid-row: span 5; }
+    .tile-03, .tile-06, .tile-08, .tile-09, .tile-12 { grid-row: span 4; }
+}
+
+@media (min-width: 1024px) {
+    .gallery-grid {
+        grid-template-columns: repeat(6, minmax(0, 1fr));
+        grid-auto-rows: 72px;
+        gap: 1rem;
+    }
+
+    .tile-01 { grid-column: 1 / span 2; grid-row: 1 / span 5; }
+    .tile-02 { grid-column: 3 / span 1; grid-row: 2 / span 4; }
+    .tile-03 { grid-column: 4 / span 2; grid-row: 1 / span 3; }
+    .tile-04 { grid-column: 6 / span 1; grid-row: 1 / span 5; }
+    .tile-05 { grid-column: 1 / span 1; grid-row: 6 / span 4; }
+    .tile-06 { grid-column: 2 / span 2; grid-row: 6 / span 3; }
+    .tile-07 { grid-column: 4 / span 1; grid-row: 5 / span 5; }
+    .tile-08 { grid-column: 5 / span 2; grid-row: 6 / span 3; }
+    .tile-09 { grid-column: 1 / span 2; grid-row: 10 / span 3; }
+    .tile-10 { grid-column: 3 / span 1; grid-row: 9 / span 4; }
+    .tile-11 { grid-column: 4 / span 2; grid-row: 10 / span 5; }
+    .tile-12 { grid-column: 6 / span 1; grid-row: 9 / span 4; }
+
+    .tile-02, .tile-07, .tile-10 {
+        margin-top: 0.45rem;
+    }
+
+    .tile-05, .tile-12 {
+        margin-top: 0.7rem;
+    }
+}
+
 .download-link:hover {
     color: #551A8B;
 }
