@@ -16,11 +16,16 @@
 
     <main>
         <section class="page-header">
-            <p>A curated collage of recent frames.</p>
+            <p>Select photos that I've taken over the years</p>
         </section>
+        <button class="gallery-view-toggle" id="openCarouselBtn" type="button" aria-haspopup="dialog" aria-controls="galleryCarousel">
+            Carousel
+        </button>
 
         <section class="gallery" id="gallery">
-            <h2>Photo Gallery</h2>
+            <div class="gallery-heading">
+                <h2></h2>
+            </div>
             <div class="gallery-grid">
                 <figure class="gallery-tile tile-01">
                     <img src="assets/gallery/photo-01.webp" alt="" loading="lazy" decoding="async" width="1200" height="900">
@@ -59,7 +64,241 @@
                     <img src="assets/gallery/photo-12.webp" alt="" loading="lazy" decoding="async" width="1200" height="900">
                 </figure>
             </div>
+
+            <div class="carousel-overlay" id="galleryCarousel" role="dialog" aria-modal="true" aria-label="Photo carousel" hidden>
+                <button class="carousel-close" id="closeCarouselBtn" type="button" aria-label="Close carousel">&times;</button>
+                <button class="carousel-nav carousel-nav-prev" id="carouselPrevBtn" type="button" aria-label="Previous photo">&#10094;</button>
+                <figure class="carousel-stage">
+                    <img id="carouselImage" src="" alt="">
+                </figure>
+                <button class="carousel-nav carousel-nav-next" id="carouselNextBtn" type="button" aria-label="Next photo">&#10095;</button>
+                <p class="carousel-count" id="carouselCount">1/1</p>
+            </div>
         </section>
     </main>
+
+    <script>
+        (function () {
+            const openButton = document.getElementById("openCarouselBtn");
+            const overlay = document.getElementById("galleryCarousel");
+            const closeButton = document.getElementById("closeCarouselBtn");
+            const prevButton = document.getElementById("carouselPrevBtn");
+            const nextButton = document.getElementById("carouselNextBtn");
+            const carouselImage = document.getElementById("carouselImage");
+            const carouselCount = document.getElementById("carouselCount");
+            const collageImages = Array.from(document.querySelectorAll(".gallery-grid img"));
+
+            if (!openButton || !overlay || !carouselImage || !carouselCount || collageImages.length === 0) {
+                return;
+            }
+
+            const sourcesSet = new Set(
+                collageImages
+                    .map((image) => image.getAttribute("src"))
+                    .filter(Boolean)
+            );
+
+            let sources = sortSources(Array.from(sourcesSet));
+            let currentIndex = 0;
+            let isOpen = false;
+
+            function extractPhotoNumber(path) {
+                const match = path.match(/photo-(\d+)/i);
+                return match ? Number(match[1]) : Number.MAX_SAFE_INTEGER;
+            }
+
+            function sortSources(list) {
+                return list.slice().sort((a, b) => {
+                    const aNumber = extractPhotoNumber(a);
+                    const bNumber = extractPhotoNumber(b);
+                    if (aNumber !== bNumber) {
+                        return aNumber - bNumber;
+                    }
+                    return a.localeCompare(b);
+                });
+            }
+
+            function imageExists(src) {
+                return new Promise((resolve) => {
+                    const probe = new Image();
+                    probe.onload = function () {
+                        resolve(true);
+                    };
+                    probe.onerror = function () {
+                        resolve(false);
+                    };
+                    probe.src = src;
+                });
+            }
+
+            function normalizeListedImagePath(directory, href) {
+                if (!href) {
+                    return null;
+                }
+
+                const stripped = href.split("#")[0].split("?")[0];
+                if (!/\.(avif|gif|jpe?g|png|webp)$/i.test(stripped)) {
+                    return null;
+                }
+
+                if (/^https?:\/\//i.test(stripped)) {
+                    return null;
+                }
+
+                if (stripped.startsWith("/")) {
+                    return stripped.slice(1);
+                }
+
+                if (stripped.includes("/")) {
+                    if (stripped.startsWith(directory)) {
+                        return stripped;
+                    }
+                    return null;
+                }
+
+                return directory + stripped;
+            }
+
+            async function discoverFromDirectoryListing(directory) {
+                try {
+                    const response = await fetch(directory, { cache: "no-store" });
+                    if (!response.ok) {
+                        return;
+                    }
+
+                    const html = await response.text();
+                    const hrefMatches = html.match(/href=["'][^"']+["']/gi) || [];
+
+                    for (let index = 0; index < hrefMatches.length; index += 1) {
+                        const hrefValue = hrefMatches[index].slice(6, -1);
+                        const normalizedPath = normalizeListedImagePath(directory, hrefValue);
+                        if (normalizedPath) {
+                            sourcesSet.add(normalizedPath);
+                        }
+                    }
+                } catch (error) {
+                    return;
+                }
+            }
+
+            async function discoverAdditionalPhotos() {
+                const firstSource = sources[0];
+                if (!firstSource) {
+                    return;
+                }
+
+                const directoryIndex = firstSource.lastIndexOf("/");
+                const directory = directoryIndex !== -1 ? firstSource.slice(0, directoryIndex + 1) : "";
+                if (directory) {
+                    await discoverFromDirectoryListing(directory);
+                }
+
+                const patternMatch = firstSource.match(/^(.*photo-)(\d+)(\.[a-z0-9]+)$/i);
+                if (!patternMatch) {
+                    sources = sortSources(Array.from(sourcesSet));
+                    return;
+                }
+
+                const prefix = patternMatch[1];
+                const width = patternMatch[2].length;
+                const extension = patternMatch[3];
+                let consecutiveMisses = 0;
+
+                for (let number = 1; number <= 250 && consecutiveMisses < 8; number += 1) {
+                    const candidate = prefix + String(number).padStart(width, "0") + extension;
+                    if (sourcesSet.has(candidate)) {
+                        consecutiveMisses = 0;
+                        continue;
+                    }
+
+                    const exists = await imageExists(candidate);
+                    if (exists) {
+                        sourcesSet.add(candidate);
+                        consecutiveMisses = 0;
+                    } else {
+                        consecutiveMisses += 1;
+                    }
+                }
+
+                sources = sortSources(Array.from(sourcesSet));
+            }
+
+            function render() {
+                if (sources.length === 0) {
+                    return;
+                }
+                carouselImage.src = sources[currentIndex];
+                carouselCount.textContent = (currentIndex + 1) + "/" + sources.length;
+            }
+
+            function openCarousel(startIndex) {
+                if (sources.length === 0) {
+                    return;
+                }
+                currentIndex = (startIndex + sources.length) % sources.length;
+                overlay.hidden = false;
+                overlay.classList.add("is-open");
+                document.body.classList.add("carousel-open");
+                render();
+                isOpen = true;
+            }
+
+            function closeCarousel() {
+                overlay.classList.remove("is-open");
+                overlay.hidden = true;
+                document.body.classList.remove("carousel-open");
+                isOpen = false;
+            }
+
+            function step(direction) {
+                if (sources.length === 0) {
+                    return;
+                }
+                currentIndex = (currentIndex + direction + sources.length) % sources.length;
+                render();
+            }
+
+            const discoveryPromise = discoverAdditionalPhotos();
+
+            openButton.addEventListener("click", async function () {
+                const originalLabel = (openButton.textContent || "Carousel").trim() || "Carousel";
+                openButton.disabled = true;
+                openButton.textContent = "Loading...";
+                await discoveryPromise;
+                openButton.disabled = false;
+                openButton.textContent = originalLabel;
+                openCarousel(0);
+            });
+
+            prevButton.addEventListener("click", function () {
+                step(-1);
+            });
+
+            nextButton.addEventListener("click", function () {
+                step(1);
+            });
+
+            closeButton.addEventListener("click", closeCarousel);
+
+            overlay.addEventListener("click", function (event) {
+                if (event.target === overlay) {
+                    closeCarousel();
+                }
+            });
+
+            document.addEventListener("keydown", function (event) {
+                if (!isOpen) {
+                    return;
+                }
+                if (event.key === "ArrowRight") {
+                    step(1);
+                } else if (event.key === "ArrowLeft") {
+                    step(-1);
+                } else if (event.key === "Escape") {
+                    closeCarousel();
+                }
+            });
+        })();
+    </script>
 </body>
 </html>
