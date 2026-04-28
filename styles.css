@@ -102,6 +102,30 @@ p {
     margin-bottom: 1.25rem;
 }
 
+.article-figure {
+    margin: 1.5rem 0;
+}
+
+.article-figure img {
+    display: block;
+    width: 100%;
+    height: auto;
+}
+
+.article-figure figcaption {
+    margin-top: 0.5rem;
+    color: #555;
+    font-size: 0.9rem;
+}
+
+.references-list {
+    padding-left: 1.5rem;
+}
+
+.references-list li {
+    margin-bottom: 0.75rem;
+}
+
 /* Lists */
 ul {
     margin: 0.5rem 0;
