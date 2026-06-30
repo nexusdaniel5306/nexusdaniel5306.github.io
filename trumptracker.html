@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TrumpTracker | Daniel Li</title>
+    <link rel="icon" type="image/webp" href="favicon.webp">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <header>
+        <div class="breadcrumb">
+            <a href="index.html">Daniel Li</a> > <a href="projects.html">Projects</a> > <span>TrumpTracker</span>
+        </div>
+    </header>
+
+    <main>
+        <section class="page-header">
+            <h2>TrumpTracker</h2>
+        </section>
+
+        <section class="project-card">
+            <p>Few messages move markets as abruptly as Donald Trump’s social media posts. A single midday announcement can send prices sharply higher or lower, rivaling the immediate impact of an unexpected jobs report or Federal Reserve rate decision. The content cannot be predicted, but its arrival can be detected and interpreted quickly. Through API reverse engineering, adaptive polling, and low-latency LLM inference, TrumpTracker is designed to retrieve and process market-moving “truths” before the corresponding mobile notification reaches the user. A server-side worker polls Truth Social, deduplicates new posts, and streams updates to connected browsers through Server-Sent Events. The system runs on local bare-metal infrastructure and is intentionally not exposed to the public internet.</p>
+            <p>Each post is retrieved, analyzed, enriched with linked cards, media, and referenced-post context, and persisted in SQLite. Once a post is retrieved, it is typically visible in the dashboard within 500 milliseconds. A Groq-hosted Llama 70B analysis queue uses structured output to generate concise headlines and classify whether a post may have an asymmetric market impact—for example, an emergency tariff announcement or escalation of armed conflict. Adaptive backoff, startup catch-up, and feed filters keep the monitor resilient, while a Web Audio squawk alert immediately draws attention to posts classified as important.</p>
+            <p><strong>Technologies:</strong> Next.js, React, TypeScript, Server-Sent Events, SQLite, Playwright, Groq API, structured output, Web Audio API, Docker</p>
+        </section>
+    </main>
+</body>
+</html>
