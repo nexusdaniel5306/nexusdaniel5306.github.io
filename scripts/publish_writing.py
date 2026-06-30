@@ -39,6 +39,7 @@ LINK_RE = re.compile(r"\[([^\]]+)\]\(([^)]+)\)")
 CODE_RE = re.compile(r"`([^`]+)`")
 BOLD_RE = re.compile(r"(\*\*|__)(.+?)\1")
 ITALIC_RE = re.compile(r"(?<!\*)\*(?!\s)(.+?)(?<!\s)\*(?!\*)|(?<!_)_(?!\s)(.+?)(?<!\s)_(?!_)")
+FENCE_RE = re.compile(r"^```(?P<lang>[a-zA-Z0-9_+-]*)\s*$")
 
 
 @dataclass
@@ -61,6 +62,13 @@ class ListToken:
     indent: int
     ordered: bool
     content: str
+
+
+@dataclass
+class Block:
+    kind: str
+    lines: list[str]
+    language: str = ""
 
 
 def parse_args() -> argparse.Namespace:
@@ -258,7 +266,8 @@ def prompt_input(prompt: str) -> str:
 
 
 def format_display_date(iso_value: str) -> str:
-    return datetime.strptime(iso_value, "%Y-%m-%d").strftime("%B %d, %Y")
+    parsed = datetime.strptime(iso_value, "%Y-%m-%d")
+    return f"{parsed.strftime('%B')} {parsed.day}, {parsed.year}"
 
 
 def normalize_excerpt(text: str, limit: int = 160) -> str:
@@ -298,11 +307,14 @@ def render_markdown(text: str) -> str:
 
 
 def render_markdown_fallback(text: str) -> str:
-    blocks = [block for block in re.split(r"\n\s*\n", text.strip()) if block.strip()]
     rendered: list[str] = []
 
-    for block in blocks:
-        lines = block.splitlines()
+    for block in parse_blocks(text):
+        if block.kind == "code":
+            rendered.append(render_code_block(block.lines, block.language))
+            continue
+
+        lines = block.lines
         heading_match = HEADING_RE.match(lines[0].strip())
         if heading_match:
             level = len(heading_match.group(1))
@@ -311,15 +323,64 @@ def render_markdown_fallback(text: str) -> str:
         if all(LIST_ITEM_RE.match(line) or not line.strip() for line in lines):
             rendered.append(render_list_block(lines))
             continue
-        rendered.append(render_paragraph(block))
+        rendered.append(render_paragraph(lines))
 
     return "\n\n".join(rendered)
 
 
-def render_paragraph(block: str) -> str:
-    lines = [line.strip() for line in block.splitlines()]
+def parse_blocks(text: str) -> list[Block]:
+    blocks: list[Block] = []
+    current_lines: list[str] = []
+    in_code_block = False
+    code_language = ""
+    code_lines: list[str] = []
+
+    for raw_line in text.strip().splitlines():
+        fence_match = FENCE_RE.match(raw_line.strip())
+        if fence_match:
+            if in_code_block:
+                blocks.append(Block(kind="code", lines=code_lines[:], language=code_language))
+                in_code_block = False
+                code_language = ""
+                code_lines = []
+            else:
+                if current_lines:
+                    blocks.append(Block(kind="text", lines=current_lines[:]))
+                    current_lines = []
+                in_code_block = True
+                code_language = fence_match.group("lang")
+            continue
+
+        if in_code_block:
+            code_lines.append(raw_line)
+            continue
+
+        if raw_line.strip():
+            current_lines.append(raw_line)
+            continue
+
+        if current_lines:
+            blocks.append(Block(kind="text", lines=current_lines[:]))
+            current_lines = []
+
+    if code_lines:
+        blocks.append(Block(kind="code", lines=code_lines[:], language=code_language))
+    elif current_lines:
+        blocks.append(Block(kind="text", lines=current_lines[:]))
+
+    return blocks
+
+
+def render_paragraph(lines: Iterable[str]) -> str:
+    lines = [line.strip() for line in lines]
     text = " ".join(line for line in lines if line)
     return f"<p>{render_inline(text)}</p>"
+
+
+def render_code_block(lines: Iterable[str], language: str = "") -> str:
+    class_attr = f' class="language-{html.escape(language)}"' if language else ""
+    code = "\n".join(lines)
+    return f"<pre><code{class_attr}>{html.escape(code)}</code></pre>"
 
 
 def render_list_block(lines: Iterable[str]) -> str:

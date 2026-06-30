@@ -6,7 +6,7 @@
     <title>Scrapping together a Tiny Docker Server from old gaming PC parts - Daniel Li</title>
     <meta name="post:title" content="Scrapping together a Tiny Docker Server from old gaming PC parts">
     <meta name="post:date" content="2026-05-04">
-    <meta name="post:display-date" content="May 04, 2026">
+    <meta name="post:display-date" content="May 4, 2026">
     <meta name="post:excerpt" content="How I turned old gaming PC parts into a tiny Docker home server and what I learned about Linux, networking, and deployment along the way.">
     <link rel="icon" type="image/webp" href="../favicon.webp">
     <link rel="stylesheet" href="../styles.css">
@@ -21,7 +21,7 @@
     <main>
         <article>
             <h1>Scrapping together a Tiny Docker Server from old gaming PC parts</h1>
-            <p class="article-meta">Published on May 04, 2026</p>
+            <p class="article-meta">Published on May 4, 2026</p>
 
             <p>I recently finished a small home server project! I had two main motivations: To learn more about networking and containerization by deploying onto local bare metal; and to create a small machine which I could quickly deploy, test, and host personal projects on.</p>
 
@@ -41,7 +41,8 @@
 
 <p>During startup, the installer showed messages like:</p>
 
-<p>``<code>text GPT PMBR size mismatch The backup GPT table is not on the end of the device </code>``</p>
+<pre><code class="language-text">GPT PMBR size mismatch
+The backup GPT table is not on the end of the device</code></pre>
 
 <p>That looked scary at first, but it turned out to be related to the way the bootable USB image was laid out. The installer continued normally, so I did not chase ghosts.</p>
 
@@ -49,7 +50,7 @@
 
 <p>I plugged in ethernet during installation, which made life much easier. Ubuntu detected multiple network interfaces, but only one received an address through DHCP:</p>
 
-<p>``<code>text enp4s0: [xx.x.xxx IP] </code>``</p>
+<pre><code class="language-text">enp4s0: [xx.x.xxx IP]</code></pre>
 
 <p>Another interface failed automatic configuration, Wi-Fi was unnecessary, and I did not need VLANs or bonding for the initial setup.</p>
 
@@ -61,11 +62,11 @@
 
 <p>The USB drive appeared as something like:</p>
 
-<p>``<code>text Generic_Flash_Disk </code>``</p>
+<pre><code class="language-text">Generic_Flash_Disk</code></pre>
 
 <p>The real target was:</p>
 
-<p>``<code>text Samsung SSD 970 EVO Plus 500GB </code>``</p>
+<pre><code class="language-text">Samsung SSD 970 EVO Plus 500GB</code></pre>
 
 <p>Ubuntu&#x27;s guided LVM layout initially allocated only 100 GB to the root filesystem and left most of the volume group unused. For a Docker server, that was not ideal. Docker images, containers, volumes, and logs usually live under the root filesystem, so giving <code>/</code> most or all of the available space made more sense.</p>
 
@@ -77,7 +78,7 @@
 
 <p>Once the server booted, I connected from my Mac with:</p>
 
-<p>``<code>bash ssh daniel5306@[OLDserverIP] </code>``</p>
+<pre><code class="language-bash">ssh daniel5306@[OLDserverIP]</code></pre>
 
 <p>And just like that, the little box was no longer a mystery machine. It was now <code>danserver</code>.</p>
 
@@ -89,11 +90,11 @@
 
 <p>Checking the address locally with this command confirmed it:</p>
 
-<p>``<code>bash ip -br addr </code>``</p>
+<pre><code class="language-bash">ip -br addr</code></pre>
 
 <p>The updated SSH command became:</p>
 
-<p>``<code>bash ssh daniel5306@[NEWserverIP] </code>``</p>
+<pre><code class="language-bash">ssh daniel5306@[NEWserverIP]</code></pre>
 
 <p>This was one of the most important little lessons from the whole project: a DHCP address is not a promise. If I want <code>danserver</code> to stay easy to find, I should reserve a stable IP address in the router using the server&#x27;s ethernet MAC address.</p>
 
@@ -101,15 +102,24 @@
 
 <p>After the operating system was installed and SSH worked, I had codex make a bootstrap script which handled the basic setup steps I would rather not repeat by hand:</p>
 
-<p>``<code>text Update Ubuntu packages Install tools like Git, curl, jq, htop, ncdu, and UFW Allow OpenSSH through the firewall before enabling UFW Add Docker&#x27;s official Ubuntu apt repository Install Docker Engine, Buildx, and Docker Compose Enable Docker at startup Add my user to the docker group Create /srv/apps and /srv/backups Enable unattended security updates </code>``</p>
+<pre><code class="language-text">Update Ubuntu packages
+Install tools like Git, curl, jq, htop, ncdu, and UFW
+Allow OpenSSH through the firewall before enabling UFW
+Add Docker&#x27;s official Ubuntu apt repository
+Install Docker Engine, Buildx, and Docker Compose
+Enable Docker at startup
+Add my user to the docker group
+Create /srv/apps and /srv/backups
+Enable unattended security updates</code></pre>
 
 <p>I copied it from my Mac to the server, then I ran it:</p>
 
-<p>``<code>bash bash /tmp/bootstrap-server.sh </code>``</p>
+<pre><code class="language-bash">bash /tmp/bootstrap-server.sh</code></pre>
 
 <p>After logging out and back in so the new Docker group membership would apply, I tested Docker with:</p>
 
-<p>``<code>bash docker run hello-world docker compose version </code>``</p>
+<pre><code class="language-bash">docker run hello-world
+docker compose version</code></pre>
 
 <p>Those two commands are deeply satisfying when they work. They are the server equivalent of hearing an engine turn over.</p>
 
@@ -117,19 +127,25 @@
 
 <p>I decided that applications should live under:</p>
 
-<p>``<code>text /srv/apps </code>``</p>
+<pre><code class="language-text">/srv/apps</code></pre>
 
 <p>A typical app directory looks like this:</p>
 
-<p>``<code>text /srv/apps/my-app/ Dockerfile compose.yaml .env src/ </code>``</p>
+<pre><code class="language-text">/srv/apps/my-app/
+  Dockerfile
+  compose.yaml
+  .env
+  src/</code></pre>
 
 <p>The deploy flow is intentionally simple:</p>
 
-<p>``<code>bash cd /srv/apps/my-app git pull docker compose up -d --build </code>``</p>
+<pre><code class="language-bash">cd /srv/apps/my-app
+git pull
+docker compose up -d --build</code></pre>
 
 <p>For containers that should survive reboots, I can use:</p>
 
-<p>``<code>yaml restart: unless-stopped </code>``</p>
+<pre><code class="language-yaml">restart: unless-stopped</code></pre>
 
 <p>That small line is one of Docker Compose&#x27;s best quality-of-life features. It lets the server recover automatically after a reboot without turning every side project into a production operations exercise.</p>
 
@@ -143,7 +159,7 @@
 
 <p>Then the server can clone the repository:</p>
 
-<p>``<code>bash git clone git@github.com:OWNER/REPOSITORY.git </code>``</p>
+<pre><code class="language-bash">git clone git@github.com:OWNER/REPOSITORY.git</code></pre>
 
 <p>The key lesson here is that cloning and pulling do not require write access. A home server should not have permission to push code unless it truly needs that ability.</p>
 
@@ -151,7 +167,8 @@
 
 <p>For now, the server is local-network-only. If a container needs to serve other devices on my home network, it must publish a port:</p>
 
-<p>``<code>yaml ports: - &quot;8000:8000&quot; </code>``</p>
+<pre><code class="language-yaml">ports:
+  - &quot;8000:8000&quot;</code></pre>
 
 <p>But not every container needs a port. A background worker that only makes outbound API calls, such as a Python cron job calling an external API, usually does not need any inbound access.</p>
 
@@ -159,7 +176,17 @@
 
 <p>A few sensible protections are:</p>
 
-<p>``<code>yaml services: worker: build: . restart: unless-stopped env_file: - .env user: &quot;1000:1000&quot; cap_drop: - ALL security_opt: - no-new-privileges:true </code>``</p>
+<pre><code class="language-yaml">services:
+  worker:
+    build: .
+    restart: unless-stopped
+    env_file:
+      - .env
+    user: &quot;1000:1000&quot;
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true</code></pre>
 
 <p>That keeps the container more restricted and avoids publishing ports that are not needed.</p>
 
@@ -169,7 +196,12 @@
 
 <p>Rather than forwarding random ports through my home router, a cleaner design would use a tunnel, access controls, and a reverse proxy:</p>
 
-<p>``<code>text Internet -&gt; HTTPS proxy or tunnel -&gt; access controls -&gt; home server -&gt; reverse proxy -&gt; selected container </code>``</p>
+<pre><code class="language-text">Internet
+  -&gt; HTTPS proxy or tunnel
+  -&gt; access controls
+  -&gt; home server
+  -&gt; reverse proxy
+  -&gt; selected container</code></pre>
 
 <p>Tools like Cloudflare Tunnel, Cloudflare Access, Tailscale, and Caddy are all useful depending on the goal.</p>
 
@@ -181,7 +213,8 @@
 
 <p>A simple version might look like this:</p>
 
-<p>``<code>text Main LAN:        10.168.x.0/24 Server network: 10.168.xx.0/24 </code>``</p>
+<pre><code class="language-text">Main LAN:        10.168.x.0/24
+Server network: 10.168.xx.0/24</code></pre>
 
 <p>Router rules could then allow my Mac to SSH into the server, allow the server to reach necessary internet services, and block the server from initiating connections to laptops, phones, printers, and other home devices.</p>
 
